@@ -1,28 +1,45 @@
 
 import unittest
 
-from app import app, devices
+try:
+    from app import app, devices
+except ModuleNotFoundError as error:
+    if error.name != "flask":
+        raise
+    app = None
+    devices = None
 
 
+@unittest.skipIf(
+    app is None,
+    "API-тесты пропущены: установи Flask через requirements.txt",
+)
 class TestSmartHomeAPI(unittest.TestCase):
     def setUp(self):
         app.config["TESTING"] = True
         self.client = app.test_client()
         devices.clear()
-        self.headers = {"X-API-Key": "dev-secret-key"}
 
         import app as api_module
+
         api_module.next_device_id = 1
+        self.headers = {"X-API-Key": "dev-secret-key"}
 
     def test_create_device(self):
         response = self.client.post(
             "/api/devices",
-            json={"name": "Освещение гостиной", "type": "lamp"},
+            json={
+                "name": "Освещение гостиной",
+                "type": "lamp",
+            },
             headers=self.headers,
         )
 
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(response.get_json()["name"], "Освещение гостиной")
+        self.assertEqual(
+            response.get_json()["name"],
+            "Освещение гостиной",
+        )
 
     def test_get_devices(self):
         self.client.post(
