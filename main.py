@@ -1,21 +1,16 @@
 
-class Device:
-    def __init__(self, name):
-        self.name = name
-        self.status = False
-
-    def turn_on(self):
-        self.status = True
-
-    def turn_off(self):
-        self.status = False
+from device import Device
+from lamp import Lamp
 
 
-class Lamp(Device):
-    pass
+def main() -> None:
+    """Демонстрирует работу устройства умного дома."""
+    lamp = Lamp("Освещение гостиной")
+    lamp.turn_on()
+
+    state = "включено" if lamp.status else "выключено"
+    print(f"{lamp.name}: {state}")
 
 
 if __name__ == "__main__":
-    lamp = Lamp("Освещение гостиной")
-    lamp.turn_on()
-    print(f"{lamp.name}: {'включено' if lamp.status else 'выключено'}")
+    main()
