@@ -10,8 +10,8 @@ logger = logging.getLogger(__name__)
 
 def send_telegram_message(message: str) -> bool:
     """Отправляет сообщение в Telegram. Возвращает результат отправки."""
-    token = os.environ.get("TELEGRAM_BOT_TOKEN")
-    chat_id = os.environ.get("TELEGRAM_CHAT_ID")
+    token = os.environ.get(TELEGRAM_BOT_TOKEN)
+    chat_id = os.environ.get(TELEGRAM_CHAT_ID)
 
     if not token or not chat_id:
         logger.warning("Telegram не настроен: отсутствует токен или chat_id")
