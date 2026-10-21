@@ -8,8 +8,6 @@ from access_control import (
     AccessDeniedError,
     DeviceAccessController,
 )
-from main import Device
-
 
 class TestAuthentication(unittest.TestCase):
     def setUp(self):
