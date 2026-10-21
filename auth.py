@@ -1,6 +1,56 @@
 
+import hashlib
+import hmac
+import secrets
 from dataclasses import dataclass
-from werkzeug.security import generate_password_hash, check_password_hash
+
+
+def hash_password(password: str) -> str:
+    """Создаёт стойкий хеш пароля с уникальной солью."""
+    salt = secrets.token_bytes(16)
+    n = 2**14
+    r = 8
+    p = 1
+
+    password_hash = hashlib.scrypt(
+        password.encode("utf-8"),
+        salt=salt,
+        n=n,
+        r=r,
+        p=p,
+        dklen=32,
+    )
+
+    return (
+        f"scrypt${n}${r}${p}"
+        f"${salt.hex()}${password_hash.hex()}"
+    )
+
+
+def verify_password(password: str, stored_hash: str) -> bool:
+    """Проверяет пароль по сохранённому хешу."""
+    try:
+        algorithm, n, r, p, salt_hex, hash_hex = stored_hash.split("$")
+
+        if algorithm != "scrypt":
+            return False
+
+        salt = bytes.fromhex(salt_hex)
+        expected_hash = bytes.fromhex(hash_hex)
+
+        actual_hash = hashlib.scrypt(
+            password.encode("utf-8"),
+            salt=salt,
+            n=int(n),
+            r=int(r),
+            p=int(p),
+            dklen=len(expected_hash),
+        )
+
+        return hmac.compare_digest(actual_hash, expected_hash)
+
+    except (ValueError, TypeError, MemoryError):
+        return False
 
 
 @dataclass
@@ -20,7 +70,7 @@ class AuthManager:
         self._next_id = 1
 
     def register(self, username: str, password: str) -> User:
-        """Регистрирует пользователя, сохраняя только хеш пароля."""
+        """Регистрирует пользователя, сохраняя хеш пароля."""
         username = username.strip()
 
         if not username:
@@ -30,29 +80,29 @@ class AuthManager:
             raise ValueError("Пользователь уже существует")
 
         if len(password) < 8:
-            raise ValueError("Пароль должен содержать минимум 8 символов")
+            raise ValueError(
+                "Пароль должен содержать минимум 8 символов"
+            )
 
         user = User(
             id=self._next_id,
             username=username,
-            password_hash=generate_password_hash(
-                password,
-                method="scrypt",
-            ),
+            password_hash=hash_password(password),
         )
 
         self._users[username] = user
         self._next_id += 1
+
         return user
 
     def login(self, username: str, password: str):
-        """Возвращает пользователя при успешной проверке пароля."""
+        """Возвращает пользователя только при верном пароле."""
         user = self._users.get(username.strip())
 
         if user is None:
             return None
 
-        if not check_password_hash(user.password_hash, password):
+        if not verify_password(password, user.password_hash):
             return None
 
         return user
