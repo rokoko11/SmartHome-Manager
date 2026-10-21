@@ -1,5 +1,4 @@
-
-from device import Device
+# from device import Device
 from lamp import Lamp
 
 
