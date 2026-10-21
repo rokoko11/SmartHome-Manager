@@ -1,4 +1,5 @@
-from device import Device
+
+from device import Device  # noqa: F401
 from lamp import Lamp
 
 
