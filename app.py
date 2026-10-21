@@ -1,5 +1,6 @@
 
 import os
+from telegram_notifier import send_telegram_message
 from functools import wraps
 
 from flask import Flask, jsonify, request
@@ -66,6 +67,13 @@ def create_device():
     device_id = next_device_id
     next_device_id += 1
     devices[device_id] = device
+
+    send_telegram_message(
+    f" SmartHome Manager\n"
+    f"Создано устройство: {device.name}\n"
+    f"Тип: {device_type}\n"
+    f"ID: {device_id}"
+)
 
     return jsonify({
         "id": device_id,
