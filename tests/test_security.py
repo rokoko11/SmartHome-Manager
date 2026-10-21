@@ -1,6 +1,8 @@
 
 import unittest
 
+from main import Device
+
 from auth import AuthManager
 from access_control import (
     AccessDeniedError,
